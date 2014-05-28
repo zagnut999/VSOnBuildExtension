@@ -29,6 +29,7 @@ namespace CleverMonkeys.VSOnBuildExtension
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", 1)]
+    [ProvideOptionPage(typeof(ToolsOptions), "OnBuild Extension", "General", 101, 106, true)]
     [Guid(GuidList.guidVSOnBuildExtensionPkgString)]
     public sealed class VSOnBuildExtensionPackage : Package
     {
@@ -78,22 +79,46 @@ namespace CleverMonkeys.VSOnBuildExtension
         /// </summary>
         private void MenuItemCallback(object sender, EventArgs e)
         {
+            IVsOutputWindow outWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
+
+            Guid buildPaneGuid = VSConstants.GUID_BuildOutputWindowPane;//.GUID_OutWindowGeneralPane; // P.S. There's also the GUID_OutWindowDebugPane available.
+            IVsOutputWindowPane buildPane;
+            outWindow.GetPane(ref buildPaneGuid, out buildPane);
+
+            buildPane.OutputString("Hello World!\n");
+            buildPane.Activate(); // Adds the pane to the output if its not there and brings this pane into view
+
+            var shouldRunIisReset = false;
+            var shouldLogToBuildOutput = false;
+            var obj = this.GetAutomationObject("To-Do.General");
+
+            var options = obj as ToolsOptions;
+            if (options != null)
+            {
+                shouldLogToBuildOutput = options.ShouldLogToBuildOutput;
+                shouldRunIisReset = options.ShouldRunIisReset;
+            }
+
+            buildPane.OutputString(string.Format("LogToBuildOutput {0}\n", shouldLogToBuildOutput));
+            buildPane.OutputString(string.Format("Run IISRESET {0}\n", shouldRunIisReset));
+            
+
             // Show a Message Box to prove we were here
-            IVsUIShell uiShell = (IVsUIShell)GetService(typeof(SVsUIShell));
-            Guid clsid = Guid.Empty;
-            int result;
-            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(uiShell.ShowMessageBox(
-                       0,
-                       ref clsid,
-                       "VSOnBuildExtension",
-                       string.Format(CultureInfo.CurrentCulture, "Inside {0}.MenuItemCallback()", this.ToString()),
-                       string.Empty,
-                       0,
-                       OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                       OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
-                       OLEMSGICON.OLEMSGICON_INFO,
-                       0,        // false
-                       out result));
+            //IVsUIShell uiShell = (IVsUIShell)GetService(typeof(SVsUIShell));
+            //Guid clsid = Guid.Empty;
+            //int result;
+            //Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(uiShell.ShowMessageBox(
+            //           0,
+            //           ref clsid,
+            //           "VSOnBuildExtension",
+            //           string.Format(CultureInfo.CurrentCulture, "Inside {0}.MenuItemCallback()", this.ToString()),
+            //           string.Empty,
+            //           0,
+            //           OLEMSGBUTTON.OLEMSGBUTTON_OK,
+            //           OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
+            //           OLEMSGICON.OLEMSGICON_INFO,
+            //           0,        // false
+            //           out result));
         }
 
     }
