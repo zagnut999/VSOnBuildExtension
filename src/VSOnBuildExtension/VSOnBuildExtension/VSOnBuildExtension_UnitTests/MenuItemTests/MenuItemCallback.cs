@@ -33,7 +33,7 @@ namespace VSOnBuildExtension_UnitTests.MenuItemTests
         public void InitializeMenuCommand()
         {
             // Create the package
-            IVsPackage package = new VSOnBuildExtensionPackage() as IVsPackage;
+            IVsPackage package = new VsOnBuildExtensionPackage() as IVsPackage;
             Assert.IsNotNull(package, "The object does not implement IVsPackage");
 
             // Create a basic service provider
@@ -54,7 +54,7 @@ namespace VSOnBuildExtension_UnitTests.MenuItemTests
         public void MenuItemCallback()
         {
             // Create the package
-            IVsPackage package = new VSOnBuildExtensionPackage() as IVsPackage;
+            IVsPackage package = new VsOnBuildExtensionPackage() as IVsPackage;
             Assert.IsNotNull(package, "The object does not implement IVsPackage");
 
             // Create a basic service provider

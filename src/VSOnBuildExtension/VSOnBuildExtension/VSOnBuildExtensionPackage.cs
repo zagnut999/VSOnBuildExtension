@@ -29,10 +29,13 @@ namespace CleverMonkeys.VSOnBuildExtension
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideOptionPage(typeof(ToolsOptions), "OnBuild Extension", "General", 101, 106, true)]
+    [ProvideOptionPage(typeof(ToolsOptions), ToolsOptionName, ToolsOptionSubSection, 101, 106, true)]
     [Guid(GuidList.guidVSOnBuildExtensionPkgString)]
-    public sealed class VSOnBuildExtensionPackage : Package
+    public sealed class VsOnBuildExtensionPackage : Package
     {
+        private const string ToolsOptionName = "OnBuild Extension";
+        private const string ToolsOptionSubSection = "General";
+        
         /// <summary>
         /// Default constructor of the package.
         /// Inside this method you can place any initialization code that does not require 
@@ -40,7 +43,7 @@ namespace CleverMonkeys.VSOnBuildExtension
         /// not sited yet inside Visual Studio environment. The place to do all the other 
         /// initialization is the Initialize method.
         /// </summary>
-        public VSOnBuildExtensionPackage()
+        public VsOnBuildExtensionPackage()
         {
             Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
         }
@@ -90,7 +93,7 @@ namespace CleverMonkeys.VSOnBuildExtension
 
             var shouldRunIisReset = false;
             var shouldLogToBuildOutput = false;
-            var obj = this.GetAutomationObject("To-Do.General");
+            var obj = this.GetAutomationObject(string.Format("{0}.{1}", ToolsOptionName, ToolsOptionSubSection));
 
             var options = obj as ToolsOptions;
             if (options != null)
@@ -101,7 +104,38 @@ namespace CleverMonkeys.VSOnBuildExtension
 
             buildPane.OutputString(string.Format("LogToBuildOutput {0}\n", shouldLogToBuildOutput));
             buildPane.OutputString(string.Format("Run IISRESET {0}\n", shouldRunIisReset));
+
+            //This requires admin
+            var p = new Process
+            {
+                StartInfo = 
+                { 
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    FileName = Environment.SystemDirectory + @"\iisreset.exe" 
+                }
+            };
+            // Redirect the output stream of the child process.
+            p.Start();
+            // Do not wait for the child process to exit before
+            // reading to the end of its redirected stream.
+            // p.WaitForExit();
+            // Read the output stream first and then wait.
+            string output = p.StandardOutput.ReadToEnd();
+            string error = p.StandardError.ReadToEnd();
+            p.WaitForExit();
             
+            //var proc = System.Diagnostics.Process.Start(Environment.SystemDirectory + @"\iisreset.exe");
+            //var output = proc.StandardOutput.ReadToEnd();
+
+            buildPane.OutputString(output);
+            buildPane.OutputString(error);
+
+            //var proc = new Process();
+            //proc.StartInfo.FileName = "iisreset.exe";
+            //proc.Start();
 
             // Show a Message Box to prove we were here
             //IVsUIShell uiShell = (IVsUIShell)GetService(typeof(SVsUIShell));

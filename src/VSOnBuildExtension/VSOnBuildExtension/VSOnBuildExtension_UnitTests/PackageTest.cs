@@ -26,13 +26,13 @@ namespace VSOnBuildExtension_UnitTests
         [TestMethod()]
         public void CreateInstance()
         {
-            VSOnBuildExtensionPackage package = new VSOnBuildExtensionPackage();
+            VsOnBuildExtensionPackage package = new VsOnBuildExtensionPackage();
         }
 
         [TestMethod()]
         public void IsIVsPackage()
         {
-            VSOnBuildExtensionPackage package = new VSOnBuildExtensionPackage();
+            VsOnBuildExtensionPackage package = new VsOnBuildExtensionPackage();
             Assert.IsNotNull(package as IVsPackage, "The object does not implement IVsPackage");
         }
 
@@ -40,7 +40,7 @@ namespace VSOnBuildExtension_UnitTests
         public void SetSite()
         {
             // Create the package
-            IVsPackage package = new VSOnBuildExtensionPackage() as IVsPackage;
+            IVsPackage package = new VsOnBuildExtensionPackage() as IVsPackage;
             Assert.IsNotNull(package, "The object does not implement IVsPackage");
 
             // Create a basic service provider

@@ -131,7 +131,7 @@
     <Compile Include="ToolsOptions.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="VSOnBuildExtensionPackage.cs" />
+    <Compile Include="VsOnBuildExtensionPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PkgCmdID.cs" />
   </ItemGroup>

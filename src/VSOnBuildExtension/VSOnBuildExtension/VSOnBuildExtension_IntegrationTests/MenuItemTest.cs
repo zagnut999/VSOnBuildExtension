@@ -45,7 +45,7 @@ namespace VSOnBuildExtension_IntegrationTests
                 CommandID menuItemCmd = new CommandID(CleverMonkeys.VSOnBuildExtension.GuidList.guidVSOnBuildExtensionCmdSet, (int)CleverMonkeys.VSOnBuildExtension.PkgCmdIDList.cmdidIISReset);
 
                 // Create the DialogBoxListener Thread.
-                string expectedDialogBoxText = string.Format(CultureInfo.CurrentCulture, "{0}\n\nInside {1}.MenuItemCallback()", "VSOnBuildExtension", "CleverMonkeys.VSOnBuildExtension.VSOnBuildExtensionPackage");
+                string expectedDialogBoxText = string.Format(CultureInfo.CurrentCulture, "{0}\n\nInside {1}.MenuItemCallback()", "VSOnBuildExtension", "CleverMonkeys.VSOnBuildExtension.VsOnBuildExtensionPackage");
                 DialogBoxPurger purger = new DialogBoxPurger(NativeMethods.IDOK, expectedDialogBoxText);
 
                 try
