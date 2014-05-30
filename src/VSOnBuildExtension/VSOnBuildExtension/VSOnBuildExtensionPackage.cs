@@ -32,6 +32,7 @@ namespace CleverMonkeys.VSOnBuildExtension
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideOptionPage(typeof(ToolsOptions), ToolsOptionName, ToolsOptionSubSection, 101, 106, true)]
     [Guid(GuidList.guidVSOnBuildExtensionPkgString)]
+    [ProvideAutoLoad(UIContextGuids80.SolutionBuilding)]  //UIContextGuids80.SolutionHasMultipleProjects
     public sealed class VsOnBuildExtensionPackage : Package
     {
         private const string ToolsOptionName = "OnBuild Extension";
