@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
+using EnvDTE80;
 using Microsoft.Win32;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -54,37 +55,52 @@ namespace CleverMonkeys.VSOnBuildExtension
         // Overridden Package Implementation
         #region Package Members
 
+        private OnBuildCommand _onBuildCommand;
+
+        private DTE2 _dte;
+
         /// <summary>
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
         /// where you can put all the initialization code that rely on services provided by VisualStudio.
         /// </summary>
         protected override void Initialize()
         {
-            Debug.WriteLine (string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
+            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this));
             base.Initialize();
 
+            _dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
+            var buildPane = GetBuildPane();
             // Add our command handlers for menu (commands must exist in the .vsct file)
-            OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+            _onBuildCommand = new OnBuildCommand(_dte, buildPane);
+
+            // Add our command handlers for menu (commands must exist in the .vsct file)
+            var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if ( null != mcs )
             {
                 // Create the command for the menu item.
-                CommandID menuCommandID = new CommandID(GuidList.guidVSOnBuildExtensionCmdSet, (int)PkgCmdIDList.cmdidIISReset);
-                MenuCommand menuItem = new MenuCommand(MenuItemCallback, menuCommandID );
+                var menuCommandId = new CommandID(GuidList.guidVSOnBuildExtensionCmdSet, (int)PkgCmdIDList.cmdidIISReset);
+                var menuItem = new MenuCommand(_onBuildCommand.MenuItemCallback, menuCommandId );
+                _onBuildCommand.ManageMenuItem(menuItem);
                 mcs.AddCommand( menuItem );
             }
         }
         #endregion
 
-        /// <summary>
-        /// This function is the callback used to execute a command when the a menu item is clicked.
-        /// See the Initialize method to see how the menu item is associated to this function using
-        /// the OleMenuCommandService service and the MenuCommand class.
-        /// </summary>
-        private void MenuItemCallback(object sender, EventArgs e)
+        private static IVsOutputWindowPane GetBuildPane()
         {
-            IVsOutputWindow outWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
+            var outWindow = GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
 
-            Guid buildPaneGuid = VSConstants.GUID_BuildOutputWindowPane;//.GUID_OutWindowGeneralPane; // P.S. There's also the GUID_OutWindowDebugPane available.
+            var buildPaneGuid = VSConstants.GUID_BuildOutputWindowPane;//.GUID_OutWindowGeneralPane; // P.S. There's also the GUID_OutWindowDebugPane available.
+            IVsOutputWindowPane buildPane;
+            outWindow.GetPane(ref buildPaneGuid, out buildPane);
+            return buildPane;
+        }
+
+        private void Test()
+        {
+            var outWindow = GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
+
+            var buildPaneGuid = VSConstants.GUID_BuildOutputWindowPane;//.GUID_OutWindowGeneralPane; // P.S. There's also the GUID_OutWindowDebugPane available.
             IVsOutputWindowPane buildPane;
             outWindow.GetPane(ref buildPaneGuid, out buildPane);
 
@@ -93,7 +109,7 @@ namespace CleverMonkeys.VSOnBuildExtension
 
             var shouldRunIisReset = false;
             var shouldLogToBuildOutput = false;
-            var obj = this.GetAutomationObject(string.Format("{0}.{1}", ToolsOptionName, ToolsOptionSubSection));
+            var obj = GetAutomationObject(string.Format("{0}.{1}", ToolsOptionName, ToolsOptionSubSection));
 
             var options = obj as ToolsOptions;
             if (options != null)
@@ -137,22 +153,7 @@ namespace CleverMonkeys.VSOnBuildExtension
             //proc.StartInfo.FileName = "iisreset.exe";
             //proc.Start();
 
-            // Show a Message Box to prove we were here
-            //IVsUIShell uiShell = (IVsUIShell)GetService(typeof(SVsUIShell));
-            //Guid clsid = Guid.Empty;
-            //int result;
-            //Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(uiShell.ShowMessageBox(
-            //           0,
-            //           ref clsid,
-            //           "VSOnBuildExtension",
-            //           string.Format(CultureInfo.CurrentCulture, "Inside {0}.MenuItemCallback()", this.ToString()),
-            //           string.Empty,
-            //           0,
-            //           OLEMSGBUTTON.OLEMSGBUTTON_OK,
-            //           OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
-            //           OLEMSGICON.OLEMSGICON_INFO,
-            //           0,        // false
-            //           out result));
+            
         }
 
     }
