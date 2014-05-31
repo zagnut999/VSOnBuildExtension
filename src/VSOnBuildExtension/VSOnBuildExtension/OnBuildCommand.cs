@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using Microsoft.VisualStudio;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
-
 using EnvDTE80;
 using System.ComponentModel.Design;
-using Microsoft.VisualStudio.Shell;
 using EnvDTE;
-using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
 using Process = System.Diagnostics.Process;
 
@@ -18,7 +11,6 @@ namespace CleverMonkeys.VSOnBuildExtension
     {
         private DTE2 _dte;
         private MenuCommand _menuItem;
-        private Boolean _enabled;
         private Boolean _alreadyRan;
         private readonly IVsOutputWindowPane _buildPane;
 

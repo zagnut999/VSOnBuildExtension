@@ -129,9 +129,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="ToolsOptions.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="VsOnBuildExtensionPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PkgCmdID.cs" />

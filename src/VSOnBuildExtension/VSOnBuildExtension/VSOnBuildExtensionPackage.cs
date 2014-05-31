@@ -1,13 +1,10 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
 using EnvDTE80;
-using Microsoft.Win32;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 
 namespace CleverMonkeys.VSOnBuildExtension
@@ -30,14 +27,10 @@ namespace CleverMonkeys.VSOnBuildExtension
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideOptionPage(typeof(ToolsOptions), ToolsOptionName, ToolsOptionSubSection, 101, 106, true)]
     [Guid(GuidList.guidVSOnBuildExtensionPkgString)]
     [ProvideAutoLoad(UIContextGuids80.SolutionBuilding)]  //UIContextGuids80.SolutionHasMultipleProjects
     public sealed class VsOnBuildExtensionPackage : Package
     {
-        private const string ToolsOptionName = "OnBuild Extension";
-        private const string ToolsOptionSubSection = "General";
-        
         /// <summary>
         /// Default constructor of the package.
         /// Inside this method you can place any initialization code that does not require 
@@ -69,7 +62,7 @@ namespace CleverMonkeys.VSOnBuildExtension
             Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this));
             base.Initialize();
 
-            _dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
+            _dte = GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
             var buildPane = GetBuildPane();
             // Add our command handlers for menu (commands must exist in the .vsct file)
             _onBuildCommand = new OnBuildCommand(_dte, buildPane);
@@ -96,66 +89,5 @@ namespace CleverMonkeys.VSOnBuildExtension
             outWindow.GetPane(ref buildPaneGuid, out buildPane);
             return buildPane;
         }
-
-        private void Test()
-        {
-            var outWindow = GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
-
-            var buildPaneGuid = VSConstants.GUID_BuildOutputWindowPane;//.GUID_OutWindowGeneralPane; // P.S. There's also the GUID_OutWindowDebugPane available.
-            IVsOutputWindowPane buildPane;
-            outWindow.GetPane(ref buildPaneGuid, out buildPane);
-
-            buildPane.OutputString("Hello World!\n");
-            buildPane.Activate(); // Adds the pane to the output if its not there and brings this pane into view
-
-            var shouldRunIisReset = false;
-            var shouldLogToBuildOutput = false;
-            var obj = GetAutomationObject(string.Format("{0}.{1}", ToolsOptionName, ToolsOptionSubSection));
-
-            var options = obj as ToolsOptions;
-            if (options != null)
-            {
-                shouldLogToBuildOutput = options.ShouldLogToBuildOutput;
-                shouldRunIisReset = options.ShouldRunIisReset;
-            }
-
-            buildPane.OutputString(string.Format("LogToBuildOutput {0}\n", shouldLogToBuildOutput));
-            buildPane.OutputString(string.Format("Run IISRESET {0}\n", shouldRunIisReset));
-
-            //This requires admin
-            var p = new Process
-            {
-                StartInfo = 
-                { 
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    FileName = Environment.SystemDirectory + @"\iisreset.exe" 
-                }
-            };
-            // Redirect the output stream of the child process.
-            p.Start();
-            // Do not wait for the child process to exit before
-            // reading to the end of its redirected stream.
-            // p.WaitForExit();
-            // Read the output stream first and then wait.
-            string output = p.StandardOutput.ReadToEnd();
-            string error = p.StandardError.ReadToEnd();
-            p.WaitForExit();
-            
-            //var proc = System.Diagnostics.Process.Start(Environment.SystemDirectory + @"\iisreset.exe");
-            //var output = proc.StandardOutput.ReadToEnd();
-
-            buildPane.OutputString(output);
-            buildPane.OutputString(error);
-
-            //var proc = new Process();
-            //proc.StartInfo.FileName = "iisreset.exe";
-            //proc.Start();
-
-            
-        }
-
     }
 }
