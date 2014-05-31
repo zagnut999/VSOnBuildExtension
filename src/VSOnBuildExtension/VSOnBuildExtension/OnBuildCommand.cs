@@ -50,11 +50,14 @@ namespace CleverMonkeys.VSOnBuildExtension
             };
             p.Start();
             var output = p.StandardOutput.ReadToEnd();
-            var error = p.StandardError.ReadToEnd();
             p.WaitForExit();
 
-            _buildPane.OutputString(output);
-            _buildPane.OutputString(error);
+            if (output.Contains("administrator"))
+                _buildPane.OutputString("ERROR: Requires admin rights.\n");
+            else
+                _buildPane.OutputString(output);
+            _buildPane.OutputString("INFO: Finishing IIS Reset....\n");
+            
         }
 
         /// <summary>
