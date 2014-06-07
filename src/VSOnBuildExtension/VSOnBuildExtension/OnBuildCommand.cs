@@ -10,17 +10,16 @@ namespace CleverMonkeys.VSOnBuildExtension
 {
     internal class OnBuildCommand
     {
-        private DTE2 _dte;
         private readonly IVsOutputWindowPane _buildPane;
-        private WritableSettingsStore _userSettingsStore;
-        private string _collectionPath;
+        private readonly WritableSettingsStore _writableSettingsStore;
+        private readonly string _collectionPath;
 
         private string CollectionPath
         {
             get { return _collectionPath + "IISReset"; }
         }
 
-        private string _enabledPropertyName = "Enabled";
+        private const string EnabledPropertyName = "Enabled";
 
         private MenuCommand _menuItem;
         private Boolean _alreadyRan;
@@ -31,29 +30,30 @@ namespace CleverMonkeys.VSOnBuildExtension
             {
                 var enabled = false;
 
-                if (_userSettingsStore.CollectionExists(CollectionPath) && _userSettingsStore.PropertyExists(CollectionPath, _enabledPropertyName))
+                if (_writableSettingsStore.CollectionExists(CollectionPath) && _writableSettingsStore.PropertyExists(CollectionPath, EnabledPropertyName))
                 {
-                    enabled = _userSettingsStore.GetBoolean(CollectionPath, _enabledPropertyName);
+                    enabled = _writableSettingsStore.GetBoolean(CollectionPath, EnabledPropertyName);
                 }
 
                 return enabled;
             }
             set
             {
-                if (!_userSettingsStore.CollectionExists(CollectionPath))
-                    _userSettingsStore.CreateCollection(CollectionPath);
-                _userSettingsStore.SetBoolean(CollectionPath, _enabledPropertyName, value);
+                if (!_writableSettingsStore.CollectionExists(CollectionPath))
+                    _writableSettingsStore.CreateCollection(CollectionPath);
+                _writableSettingsStore.SetBoolean(CollectionPath, EnabledPropertyName, value);
             }
         }
 
-        internal OnBuildCommand(DTE2 dte, IVsOutputWindowPane buildPane, WritableSettingsStore userSettingsStore, string collectionPath)
+        internal OnBuildCommand(DTE2 dte, IVsOutputWindowPane buildPane, WritableSettingsStore writeableSettingsStore, string collectionPath)
         {
             _buildPane = buildPane;
-            _dte = dte;
-            _dte.Events.BuildEvents.OnBuildBegin += OnBuildBegin;
-            _dte.Events.BuildEvents.OnBuildProjConfigDone += (project, projectConfig, platform, solutionConfig, success) => _alreadyRan = false;
-            _userSettingsStore = userSettingsStore;
+            _writableSettingsStore = writeableSettingsStore;
             _collectionPath = collectionPath;
+
+            dte.Events.BuildEvents.OnBuildBegin += OnBuildBegin;
+            dte.Events.BuildEvents.OnBuildProjConfigDone += (project, projectConfig, platform, solutionConfig, success) => _alreadyRan = false;
+            
         }
 
         private void OnBuildBegin(vsBuildScope scope, vsBuildAction action)

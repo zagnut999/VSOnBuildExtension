@@ -61,7 +61,7 @@ namespace CleverMonkeys.VSOnBuildExtension
 
         private DTE2 _dte;
 
-        private WritableSettingsStore _userSettingsStore;
+        private WritableSettingsStore _settingsStore;
         private const string VsOnBuildextensionCollectionPath = @"Clevermonkeys\VsOnBuildExtension\";
 
         /// <summary>
@@ -74,12 +74,12 @@ namespace CleverMonkeys.VSOnBuildExtension
             base.Initialize();
 
             var settingsManager = new ShellSettingsManager(this);
-            _userSettingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+            _settingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
             
             _dte = GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
             var buildPane = GetBuildPane();
             // Add our command handlers for menu (commands must exist in the .vsct file)
-            _onBuildCommand = new OnBuildCommand(_dte, buildPane, _userSettingsStore, VsOnBuildextensionCollectionPath);
+            _onBuildCommand = new OnBuildCommand(_dte, buildPane, _settingsStore, VsOnBuildextensionCollectionPath);
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
