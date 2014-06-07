@@ -1,11 +1,15 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
 using EnvDTE80;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Settings;
 
 namespace CleverMonkeys.VSOnBuildExtension
 {
@@ -28,7 +32,11 @@ namespace CleverMonkeys.VSOnBuildExtension
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(GuidList.guidVSOnBuildExtensionPkgString)]
-    [ProvideAutoLoad(UIContextGuids80.SolutionBuilding)]  //UIContextGuids80.SolutionHasMultipleProjects
+    //[ProvideAutoLoad(UIContextGuids80.ToolboxInitialized)]  //UIContextGuids80.SolutionHasMultipleProjects
+    [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string)]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionHasMultipleProjects_string)]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionHasSingleProject_string)]
     public sealed class VsOnBuildExtensionPackage : Package
     {
         /// <summary>
@@ -53,6 +61,9 @@ namespace CleverMonkeys.VSOnBuildExtension
 
         private DTE2 _dte;
 
+        private WritableSettingsStore _userSettingsStore;
+        private const string VsOnBuildextensionCollectionPath = @"Clevermonkeys\VsOnBuildExtension\";
+
         /// <summary>
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
         /// where you can put all the initialization code that rely on services provided by VisualStudio.
@@ -62,10 +73,13 @@ namespace CleverMonkeys.VSOnBuildExtension
             Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this));
             base.Initialize();
 
+            var settingsManager = new ShellSettingsManager(this);
+            _userSettingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+            
             _dte = GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
             var buildPane = GetBuildPane();
             // Add our command handlers for menu (commands must exist in the .vsct file)
-            _onBuildCommand = new OnBuildCommand(_dte, buildPane);
+            _onBuildCommand = new OnBuildCommand(_dte, buildPane, _userSettingsStore, VsOnBuildextensionCollectionPath);
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;

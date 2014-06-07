@@ -2,34 +2,63 @@
 using EnvDTE80;
 using System.ComponentModel.Design;
 using EnvDTE;
+using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Interop;
 using Process = System.Diagnostics.Process;
 
 namespace CleverMonkeys.VSOnBuildExtension
 {
-    public class OnBuildCommand
+    internal class OnBuildCommand
     {
         private DTE2 _dte;
-        private MenuCommand _menuItem;
-        private Boolean _alreadyRan;
         private readonly IVsOutputWindowPane _buildPane;
+        private WritableSettingsStore _userSettingsStore;
+        private string _collectionPath;
 
-        private bool Enabled 
+        private string CollectionPath
         {
-            get { return _menuItem != null && _menuItem.Checked; }
+            get { return _collectionPath + "IISReset"; }
         }
 
-        public OnBuildCommand(DTE2 dte, IVsOutputWindowPane buildPane)
+        private string _enabledPropertyName = "Enabled";
+
+        private MenuCommand _menuItem;
+        private Boolean _alreadyRan;
+
+        private bool IsEnabled 
+        {
+            get
+            {
+                var enabled = false;
+
+                if (_userSettingsStore.CollectionExists(CollectionPath) && _userSettingsStore.PropertyExists(CollectionPath, _enabledPropertyName))
+                {
+                    enabled = _userSettingsStore.GetBoolean(CollectionPath, _enabledPropertyName);
+                }
+
+                return enabled;
+            }
+            set
+            {
+                if (!_userSettingsStore.CollectionExists(CollectionPath))
+                    _userSettingsStore.CreateCollection(CollectionPath);
+                _userSettingsStore.SetBoolean(CollectionPath, _enabledPropertyName, value);
+            }
+        }
+
+        internal OnBuildCommand(DTE2 dte, IVsOutputWindowPane buildPane, WritableSettingsStore userSettingsStore, string collectionPath)
         {
             _buildPane = buildPane;
             _dte = dte;
             _dte.Events.BuildEvents.OnBuildBegin += OnBuildBegin;
             _dte.Events.BuildEvents.OnBuildProjConfigDone += (project, projectConfig, platform, solutionConfig, success) => _alreadyRan = false;
+            _userSettingsStore = userSettingsStore;
+            _collectionPath = collectionPath;
         }
 
         private void OnBuildBegin(vsBuildScope scope, vsBuildAction action)
         {
-            if (!Enabled || _alreadyRan) return;
+            if (!IsEnabled || _alreadyRan) return;
 
             _alreadyRan = true;
 
@@ -65,15 +94,16 @@ namespace CleverMonkeys.VSOnBuildExtension
         /// See the Initialize method to see how the menu item is associated to this function using
         /// the OleMenuCommandService service and the MenuCommand class.
         /// </summary>
-        public void MenuItemCallback(object sender, EventArgs e)
+        internal void MenuItemCallback(object sender, EventArgs e)
         {
-            _menuItem.Checked = !_menuItem.Checked;
+            IsEnabled = !IsEnabled;
+            _menuItem.Checked = IsEnabled;
         }
 
         internal void ManageMenuItem(MenuCommand menuItem)
         {
             _menuItem = menuItem;
-            _menuItem.Checked = true;
+            _menuItem.Checked = IsEnabled;
         }
     }
 }
