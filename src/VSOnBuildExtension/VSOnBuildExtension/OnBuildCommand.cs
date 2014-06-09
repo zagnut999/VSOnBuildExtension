@@ -48,6 +48,8 @@ namespace CleverMonkeys.VSOnBuildExtension
         internal OnBuildCommand(DTE2 dte, IVsOutputWindowPane buildPane, WritableSettingsStore writeableSettingsStore, string collectionPath)
         {
             _buildPane = buildPane;
+            if (_buildPane != null) _buildPane.Activate(); // Adds the pane to the output if its not there and brings this pane into view
+
             _writableSettingsStore = writeableSettingsStore;
             _collectionPath = collectionPath;
 
@@ -62,8 +64,7 @@ namespace CleverMonkeys.VSOnBuildExtension
 
             _alreadyRan = true;
 
-            _buildPane.OutputString("INFO: Starting IIS Reset....\n");
-            _buildPane.Activate(); // Adds the pane to the output if its not there and brings this pane into view
+            WriteToPane("INFO: Starting IIS Reset....\n");
             
             //This requires admin
             var p = new Process
@@ -82,10 +83,10 @@ namespace CleverMonkeys.VSOnBuildExtension
             p.WaitForExit();
 
             if (output.Contains("administrator"))
-                _buildPane.OutputString("ERROR: Requires admin rights.\n");
+                WriteToPane("ERROR: Requires admin rights.\n");
             else
-                _buildPane.OutputString(output);
-            _buildPane.OutputString("INFO: Finishing IIS Reset....\n");
+                WriteToPane(output);
+            WriteToPane("INFO: Finishing IIS Reset....\n");
             
         }
 
@@ -104,6 +105,12 @@ namespace CleverMonkeys.VSOnBuildExtension
         {
             _menuItem = menuItem;
             _menuItem.Checked = IsEnabled;
+        }
+
+        private void WriteToPane(string message)
+        {
+            if (_buildPane != null)
+                _buildPane.OutputStringThreadSafe(message);
         }
     }
 }

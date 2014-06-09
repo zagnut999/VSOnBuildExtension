@@ -63,9 +63,9 @@
 
       <Button guid="guidVSOnBuildExtensionCmdSet" id="cmdidIISReset" priority="0x0100" type="Button">
         <Parent guid="guidVSOnBuildExtensionCmdSet" id="MyMenuGroup" />
-        <Icon guid="guidImages" id="bmpPic1" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>IISReset</ButtonText>
+          <ButtonText>IIS Reset On Build</ButtonText>
         </Strings>
       </Button>
 
@@ -86,7 +86,9 @@
  
   </Commands>
 
-
+  <VisibilityConstraints>
+    <VisibilityItem guid="guidVSOnBuildExtensionCmdSet" id="cmdidIISReset" context="UICONTEXT_EmptySolution"/>
+  </VisibilityConstraints>
 
 
 
@@ -100,7 +102,6 @@
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="cmdidIISReset" value="0x0100" />
     </GuidSymbol>
-    
     
     
     <GuidSymbol name="guidImages" value="{e6ffbdfb-b4e2-49db-b2ba-d0bb510ba63e}" >

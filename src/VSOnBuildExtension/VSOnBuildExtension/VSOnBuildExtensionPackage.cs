@@ -32,11 +32,8 @@ namespace CleverMonkeys.VSOnBuildExtension
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(GuidList.guidVSOnBuildExtensionPkgString)]
-    //[ProvideAutoLoad(UIContextGuids80.ToolboxInitialized)]  //UIContextGuids80.SolutionHasMultipleProjects
-    [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)]
+    // When to load the extension
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string)]
-    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionHasMultipleProjects_string)]
-    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionHasSingleProject_string)]
     public sealed class VsOnBuildExtensionPackage : Package
     {
         /// <summary>
@@ -87,7 +84,7 @@ namespace CleverMonkeys.VSOnBuildExtension
             {
                 // Create the command for the menu item.
                 var menuCommandId = new CommandID(GuidList.guidVSOnBuildExtensionCmdSet, (int)PkgCmdIDList.cmdidIISReset);
-                var menuItem = new MenuCommand(_onBuildCommand.MenuItemCallback, menuCommandId );
+                var menuItem = new MenuCommand(_onBuildCommand.MenuItemCallback, menuCommandId);
                 _onBuildCommand.ManageMenuItem(menuItem);
                 mcs.AddCommand( menuItem );
             }
@@ -96,11 +93,17 @@ namespace CleverMonkeys.VSOnBuildExtension
 
         private static IVsOutputWindowPane GetBuildPane()
         {
+            IVsOutputWindowPane buildPane;
             var outWindow = GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
 
+            if (outWindow == null)
+                return null;
+
             var buildPaneGuid = VSConstants.GUID_BuildOutputWindowPane;//.GUID_OutWindowGeneralPane; // P.S. There's also the GUID_OutWindowDebugPane available.
-            IVsOutputWindowPane buildPane;
-            outWindow.GetPane(ref buildPaneGuid, out buildPane);
+
+            if (Microsoft.VisualStudio.ErrorHandler.Failed(outWindow.GetPane(ref buildPaneGuid, out buildPane)))
+                return null;
+
             return buildPane;
         }
     }
