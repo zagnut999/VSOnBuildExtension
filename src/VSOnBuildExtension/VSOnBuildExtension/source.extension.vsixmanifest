@@ -4,6 +4,8 @@
     <Identity Id="66e736a8-e261-4e34-8ffa-a98e9526c172" Version="1.0" Language="en-US" Publisher="CleverMonkeys" />
     <DisplayName>VSOnBuildExtension</DisplayName>
     <Description>Allows commands to be enabled to run before a solution build occurs.</Description>
+    <MoreInfo>https://github.com/zagnut999/VSOnBuildExtension/</MoreInfo>
+    <License>LICENSE.txt</License>
   </Metadata>
   <Installation InstalledByMsi="false">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[11.0, 13.0)" />
