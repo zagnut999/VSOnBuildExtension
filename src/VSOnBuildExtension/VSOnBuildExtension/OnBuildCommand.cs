@@ -66,6 +66,18 @@ namespace CleverMonkeys.VSOnBuildExtension
 
             WriteToPane("INFO: Starting IIS Reset....\n");
             
+            var output = DoIisReset();
+
+            if (output.Contains("administrator"))
+                WriteToPane("ERROR: Requires admin rights.\n");
+            else
+                WriteToPane(output);
+            WriteToPane("INFO: Finishing IIS Reset....\n");
+            
+        }
+
+        private static string DoIisReset()
+        {
             //This requires admin
             var p = new Process
             {
@@ -81,13 +93,7 @@ namespace CleverMonkeys.VSOnBuildExtension
             p.Start();
             var output = p.StandardOutput.ReadToEnd();
             p.WaitForExit();
-
-            if (output.Contains("administrator"))
-                WriteToPane("ERROR: Requires admin rights.\n");
-            else
-                WriteToPane(output);
-            WriteToPane("INFO: Finishing IIS Reset....\n");
-            
+            return output;
         }
 
         /// <summary>
