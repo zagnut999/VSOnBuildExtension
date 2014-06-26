@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
@@ -45,7 +43,7 @@ namespace CleverMonkeys.VSOnBuildExtension
         /// </summary>
         public VsOnBuildExtensionPackage()
         {
-            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
+            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this));
         }
 
 
@@ -54,7 +52,7 @@ namespace CleverMonkeys.VSOnBuildExtension
         // Overridden Package Implementation
         #region Package Members
 
-        private OnBuildCommand _onBuildCommand;
+        private IisResetOnBuildCommand _iisResetOnBuildCommand;
 
         private DTE2 _dte;
 
@@ -76,7 +74,7 @@ namespace CleverMonkeys.VSOnBuildExtension
             _dte = GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
             var buildPane = GetBuildPane();
             // Add our command handlers for menu (commands must exist in the .vsct file)
-            _onBuildCommand = new OnBuildCommand(_dte, buildPane, _settingsStore, VsOnBuildextensionCollectionPath);
+            _iisResetOnBuildCommand = new IisResetOnBuildCommand(_dte, buildPane, _settingsStore, VsOnBuildextensionCollectionPath);
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
@@ -84,8 +82,8 @@ namespace CleverMonkeys.VSOnBuildExtension
             {
                 // Create the command for the menu item.
                 var menuCommandId = new CommandID(GuidList.guidVSOnBuildExtensionCmdSet, (int)PkgCmdIDList.cmdidIISReset);
-                var menuItem = new MenuCommand(_onBuildCommand.MenuItemCallback, menuCommandId);
-                _onBuildCommand.ManageMenuItem(menuItem);
+                var menuItem = new MenuCommand(_iisResetOnBuildCommand.MenuItemCallback, menuCommandId);
+                _iisResetOnBuildCommand.ManageMenuItem(menuItem);
                 mcs.AddCommand( menuItem );
             }
         }
@@ -99,7 +97,7 @@ namespace CleverMonkeys.VSOnBuildExtension
             if (outWindow == null)
                 return null;
 
-            var buildPaneGuid = VSConstants.GUID_BuildOutputWindowPane;//.GUID_OutWindowGeneralPane; // P.S. There's also the GUID_OutWindowDebugPane available.
+            var buildPaneGuid = VSConstants.GUID_BuildOutputWindowPane;
 
             if (Microsoft.VisualStudio.ErrorHandler.Failed(outWindow.GetPane(ref buildPaneGuid, out buildPane)))
                 return null;

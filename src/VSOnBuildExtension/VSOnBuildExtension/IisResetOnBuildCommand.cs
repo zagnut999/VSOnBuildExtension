@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using EnvDTE80;
 using System.ComponentModel.Design;
 using EnvDTE;
@@ -8,7 +9,7 @@ using Process = System.Diagnostics.Process;
 
 namespace CleverMonkeys.VSOnBuildExtension
 {
-    internal class OnBuildCommand
+    internal class IisResetOnBuildCommand
     {
         private readonly IVsOutputWindowPane _buildPane;
         private readonly WritableSettingsStore _writableSettingsStore;
@@ -45,7 +46,7 @@ namespace CleverMonkeys.VSOnBuildExtension
             }
         }
 
-        internal OnBuildCommand(DTE2 dte, IVsOutputWindowPane buildPane, WritableSettingsStore writeableSettingsStore, string collectionPath)
+        internal IisResetOnBuildCommand(DTE2 dte, IVsOutputWindowPane buildPane, WritableSettingsStore writeableSettingsStore, string collectionPath)
         {
             _buildPane = buildPane;
             if (_buildPane != null) _buildPane.Activate(); // Adds the pane to the output if its not there and brings this pane into view
@@ -79,20 +80,29 @@ namespace CleverMonkeys.VSOnBuildExtension
         private static string DoIisReset()
         {
             //This requires admin
-            var p = new Process
+            var fileName = Environment.SystemDirectory + @"\iisreset.exe";
+            string output;
+            if (File.Exists(fileName))
             {
-                StartInfo =
+                var p = new Process
                 {
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    FileName = Environment.SystemDirectory + @"\iisreset.exe"
-                }
-            };
-            p.Start();
-            var output = p.StandardOutput.ReadToEnd();
-            p.WaitForExit();
+                    StartInfo =
+                    {
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        FileName = fileName
+                    }
+                };
+                p.Start();
+                output = p.StandardOutput.ReadToEnd();
+                //p.WaitForExit();
+            }
+            else
+            {
+                output = string.Format("ERROR: Command not found! '{0}'\n", fileName);
+            }
             return output;
         }
 
